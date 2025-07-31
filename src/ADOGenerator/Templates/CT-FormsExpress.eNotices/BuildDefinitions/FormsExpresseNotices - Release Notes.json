@@ -30,7 +30,10 @@
       "value": ""
     },
     "WikiLink": {
-      "value": "https://dev.azure.com/$Organization$/$ProjectName$/_wiki/wikis/$ProjectName$.wiki/556/Release-Notes"
+      "value": "https://dev.azure.com/$Organization$/$ProjectName$/_wiki/wikis/$ProjectName$.wiki/Release-Notes"
+    },
+    "WikiRepo": {
+      "value": "https://$Organization$@dev.azure.com/$Organization$/$ProjectName$/_git/$ProjectName$.wiki"
     }
   },
   "properties": {},
