@@ -146,8 +146,9 @@ namespace RestAPI.WorkItemAndTracking
                     if (!string.IsNullOrEmpty(teamIterationMapJson))
                     {
                         string project = projectName;
+                        // Default iteration starts today and lasts for 2 weeks
                         DateTime startDate = DateTime.Today;
-                        DateTime endDate = DateTime.Today.AddDays(18);
+                        DateTime endDate = DateTime.Today.AddDays(13);
 
                         TeamIterations.Map iterationMaps = new TeamIterations.Map();
                         iterationMaps = JsonConvert.DeserializeObject<TeamIterations.Map>(teamIterationMapJson);
@@ -159,26 +160,17 @@ namespace RestAPI.WorkItemAndTracking
                                 if (i % 2 == 1)
                                 {
                                     startDate = DateTime.Today;
-                                    endDate = DateTime.Today.AddDays(18);
+                                    endDate = DateTime.Today.AddDays(13);
                                 }
                                 foreach (var iteration in iterationTeam.Iterations)
                                 {
-
                                     Dictionary<string, string[]> sprint_dictionary = new Dictionary<string, string[]>();
                                     sprint_dictionary.Add(iteration, new string[] { startDate.ToShortDateString(), endDate.ToShortDateString() });
                                     foreach (var key in sprint_dictionary.Keys)
                                     {
                                         UpdateIterationDates(project, key, startDate, endDate);
-                                        if (i % 2 == 1)
-                                        {
-                                            startDate = endDate.AddDays(1);
-                                            endDate = startDate.AddDays(18);
-                                        }
-                                        else
-                                        {
-                                            startDate = endDate.AddDays(1);
-                                            endDate = startDate.AddDays(18);
-                                        }
+                                        startDate = endDate.AddDays(1);
+                                        endDate = startDate.AddDays(13);
                                     }
                                 }
                                 i++;
@@ -253,8 +245,8 @@ namespace RestAPI.WorkItemAndTracking
                     //name = path,
                     attributes = new CreateUpdateNodeViewModel.Attributes()
                     {
-                        startDate = startDate,
-                        finishDate = finishDate
+                        startDate = startDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                        finishDate = finishDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
                     }
                 };
 

@@ -1,0 +1,84 @@
+{
+  "Extensions": [
+    {
+      "extensionName": "GitVersion",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=gittools.gitversion' target='_blank'><b>GitVersion</b></a>",
+      "publisherId": "gittools",
+      "extensionId": "gitversion",
+      "publisherName": "GitTools",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=gittools.gitversion' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Pull Request Merge Conflict Extension",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=ms-devlabs.conflicts-tab' target='_blank'><b>Pull Request Merge Conflict Extension</b></a>",
+      "publisherId": "ms-devlabs",
+      "extensionId": "conflicts-tab",
+      "publisherName": "Microsoft DevLabs",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=ms-devlabs.conflicts-tab' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Zip and unzip directory build task",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=petergroenewegen.PeterGroenewegen-Xpirit-Vsts-Build-Zip' target='_blank'><b>Zip and unzip directory build task</b></a>",
+      "publisherId": "petergroenewegen",
+      "extensionId": "PeterGroenewegen-Xpirit-Vsts-Build-Zip",
+      "publisherName": "Peter Groenewegen",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=petergroenewegen.PeterGroenewegen-Xpirit-Vsts-Build-Zip' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": ".NET Core Global Tool Installer",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=petersendev.dotnet-global-tool-installer' target='_blank'><b>.NET Core Global Tool Installer</b></a>",
+      "publisherId": "petersendev",
+      "extensionId": "dotnet-global-tool-installer",
+      "publisherName": "Arne Petersen",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=petersendev.dotnet-global-tool-installer' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "WIKI Updater Tasks",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-WIKIUpdater-Tasks' target='_blank'><b>WIKI Updater Tasks</b></a>",
+      "publisherId": "richardfennellBM",
+      "extensionId": "BM-VSTS-WIKIUpdater-Tasks",
+      "publisherName": "Richard Fennell (Black Marble)",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-WIKIUpdater-Tasks' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Generate Release Notes (Crossplatform)",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-XplatGenerateReleaseNotes' target='_blank'><b>Generate Release Notes (Crossplatform)</b></a>",
+      "publisherId": "richardfennellBM",
+      "extensionId": "BM-VSTS-XplatGenerateReleaseNotes",
+      "publisherName": "Richard Fennell (Black Marble)",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-XplatGenerateReleaseNotes' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Replace Text in Source Files",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=Samayas.azuredevops-samayas-replaceinfiles' target='_blank'><b>Replace Text in Source Files</b></a>",
+      "publisherId": "Samayas",
+      "extensionId": "azuredevops-samayas-replaceinfiles",
+      "publisherName": "Samayas",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=Samayas.azuredevops-samayas-replaceinfiles' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "WhiteSource Bolt",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=whitesource.ws-bolt' target='_blank'><b>WhiteSource Bolt</b></a>",
+      "publisherId": "whitesource",
+      "extensionId": "ws-bolt",
+      "publisherName": "WhiteSource",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=whitesource.ws-bolt' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Office 365 groups and Microsoft Teams Post Message",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=YodLabs.O365PostMessage' target='_blank'><b>Office 365 groups and Microsoft Teams Post Message</b></a>",
+      "publisherId": "YodLabs",
+      "extensionId": "O365PostMessage",
+      "publisherName": "Yod Labs",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=YodLabs.O365PostMessage' target='_blank'>License Terms</a>"
+    },
+    {
+      "extensionName": "Code Search",
+      "link": "<a href='https://marketplace.visualstudio.com/items?itemName=ms.vss-code-search' target='_blank'><b>Code Search</b></a>",
+      "publisherId": "ms",
+      "extensionId": "vss-code-search",
+      "publisherName": "Microsoft",
+      "License": "<a href='https://marketplace.visualstudio.com/items?itemName=ms.vss-code-search' target='_blank'>License Terms</a>"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parameters": {
+    "localSource": {
+		"path": "C:\\Projects\\OneBit\\AzDevOpsDemoGenerator.Repository",
+        "branches": ["dev", "main"]
+    }
+  }
+}

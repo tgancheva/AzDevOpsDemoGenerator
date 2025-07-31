@@ -6,6 +6,7 @@
         {
             public string TeamName { get; set; }
             public List<string> Iterations { get; set; }
+            public bool IsDefault { get; set; }
         }
         public class Map
         {

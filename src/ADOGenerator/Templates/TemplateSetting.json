@@ -5,7 +5,8 @@
     "Microsoft Learn",
     "Azure Community",
     "Cloud Adoption Framework",
-    "FastTrack for Azure"
+    "FastTrack for Azure",
+    "Custom Templates"
   ],
   "GroupwiseTemplates": [
     {
@@ -1103,6 +1104,16 @@
           "Author": "Microsoft",
           "Image": "/Templates/TemplateImages/AzureCommunity/iac.png",
           "ForkGitHubRepo": false
+        }
+      ]
+    },
+    {
+      "Groups": "Custom Templates",
+      "Template": [
+        {
+          "Name": "FormsExpress.eNotices",
+          "TemplateFolder": "CT-FormsExpress.eNotices",
+          "Description": "This is a custom template for the project 'FormsExpress.eNotices'."
         }
       ]
     }

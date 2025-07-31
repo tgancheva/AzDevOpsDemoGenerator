@@ -4,12 +4,9 @@ using ADOGenerator.Models;
 using ADOGenerator.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
-using Microsoft.VisualStudio.Services.DelegatedAuthorization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RestAPI;
 using System.Text;
-using System.Text.RegularExpressions;
 
 var configuration = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
@@ -42,7 +39,7 @@ do
     switch (userChoiceTemplate)
     {
         case "1":
-            HandleNewProjectCreation(configuration, id);
+            await HandleNewProjectCreationAsync(configuration, id);
             break;
 
         case "2":
@@ -212,7 +209,7 @@ void SkipTemplateAndArtifactsUpdate(string id, string currentPath, Project model
 }
 
 
-void HandleNewProjectCreation(IConfiguration configuration, string id)
+async Task HandleNewProjectCreationAsync(IConfiguration configuration, string id)
 {
     Init init = new Init();
     id.AddMessage(Environment.NewLine+"Template Details");
@@ -259,7 +256,7 @@ void HandleNewProjectCreation(IConfiguration configuration, string id)
         adoAuthScheme = authScheme
     };
 
-    CreateProjectEnvironment(project);
+    await CreateProjectEnvironmentAsync(project);
 }
 
 (bool,string,Project) HandleArtifactGeneration(IConfiguration configuration, string id)
@@ -268,7 +265,7 @@ void HandleNewProjectCreation(IConfiguration configuration, string id)
     var (accessToken, organizationName, authScheme) = AuthenticateUser(init, id);
     if (string.IsNullOrWhiteSpace(accessToken) || string.IsNullOrWhiteSpace(organizationName)) return (false, string.Empty,null);
 
-    IProjectService projService = new ProjectService(configuration);
+    IProjectService projService = new CreateProjectEnvironment(configuration);
     var projects = projService.GetProjects(organizationName, accessToken, authScheme);
     var projectDetails = projService.SelectProject(accessToken, projects).Result;
 
@@ -644,11 +641,11 @@ bool ValidateExtensions(string templateFolderPath, string id)
     return false;
 }
 
-void CreateProjectEnvironment(Project model)
+async Task CreateProjectEnvironmentAsync(Project model)
 {
     Console.WriteLine($"Creating project '{model.ProjectName}' in organization '{model.accountName}' using template from '{model.TemplateName}'...");
-    var projectService = new ProjectService(configuration);
-    var result = projectService.CreateProjectEnvironment(model);
+    var projectService = new CreateProjectEnvironment(configuration);
+    var result = await projectService.CreateProjectEnvironmentAsync(model);
     if (result)
     {
         Console.ForegroundColor = ConsoleColor.Green;
@@ -662,6 +659,7 @@ void CreateProjectEnvironment(Project model)
         Console.ResetColor();
     }
 }
+
 bool UpdateTemplateSettings(string template, string id, string templatePath)
 {
     if (!File.Exists(templatePath))

@@ -1,0 +1,27 @@
+{
+    "isBlocking": true,
+    "isEnabled": true,
+    "settings": {
+        "activity": {
+            "commentRequirement": "required"
+        },
+        "addedFilesOnly": false,
+        "requiredReviewerIds": [
+        ],
+        "scope": [
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/dev",
+                "repositoryId": "$repositoryId$"
+            },
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/main",
+                "repositoryId": "$repositoryId$"
+            }
+        ]
+    },
+    "type": {
+        "id": "c6a1889d-b943-4856-b76f-9e46bb6b0df2"
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "isBlocking": true,
+    "isDeleted": false,
+    "isEnabled": true,
+    "isEnterpriseManaged": false,
+    "settings": {
+        "buildDefinitionId": "$buildDefId$",
+        "displayName": null,
+        "manualQueueOnly": true,
+        "queueOnSourceUpdateOnly": true,
+        "validDuration": 2880,
+        "scope": [
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/dev",
+                "repositoryId": "$repositoryId$"
+            },
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/main",
+                "repositoryId": "$repositoryId$"
+            }
+        ]
+    },
+    "type": {
+        "id": "0609b952-1397-4640-95ec-e00a01b2c241"
+    }
+}

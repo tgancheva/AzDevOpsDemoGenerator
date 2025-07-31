@@ -1,0 +1,29 @@
+{
+  "count": 2,
+  "value": [
+    {
+      "variables": {
+        "Database--ConnectionString": {
+          "value": null,
+          "isSecret": true
+        }
+      },
+      "id": "18",
+      "type": "Vsts",
+      "name": "Production Web API",
+      "isShared": false
+    },
+    {
+      "variables": {
+        "Database--ConnectionString": {
+          "value": null,
+          "isSecret": true
+        }
+      },
+      "id": "8",
+      "type": "Vsts",
+      "name": "Staging Web API",
+      "isShared": false
+    }
+  ]
+}

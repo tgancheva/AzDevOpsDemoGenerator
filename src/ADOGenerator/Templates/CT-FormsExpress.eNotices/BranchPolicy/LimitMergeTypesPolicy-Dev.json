@@ -1,0 +1,20 @@
+{
+    "isBlocking": true,
+    "isEnabled": true,
+    "settings": {
+        "allowMerge": false,
+        "allowRebase": false,
+        "allowRebaseMerge": false,
+        "allowSquash": true,
+        "scope": [
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/dev",
+                "repositoryId": "$repositoryId$"
+            }
+        ]
+    },
+    "type": {
+        "id": "fa4e907d-c16b-4a4c-9dfa-4916e5d171ab"
+    }
+}

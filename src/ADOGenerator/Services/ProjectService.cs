@@ -34,11 +34,11 @@ using System.Diagnostics;
 
 namespace ADOGenerator.Services
 {
-    public class ProjectService : IProjectService
+    public class CreateProjectEnvironment : IProjectService
     {
         private static readonly object objLock = new();
 
-        public bool isDefaultRepoTodetele = true;
+        public bool isDefaultRepoToDelete = true;
         public string websiteUrl = string.Empty;
         public string templateUsed = string.Empty;
         private string adoAuthScheme = string.Empty;
@@ -48,7 +48,7 @@ namespace ADOGenerator.Services
         private string templateVersion = string.Empty;
         private readonly IConfiguration _configuration;
 
-        public ProjectService(IConfiguration configuration)
+        public CreateProjectEnvironment(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -197,7 +197,7 @@ namespace ADOGenerator.Services
         /// <param name="accountName"></param>
         /// <returns></returns>
         //public string[] CreateProjectEnvironment(string accountName, string newProjectName, string token, string templateFolder, string templateUsed)
-        public bool CreateProjectEnvironment(Project model)
+        public async Task<bool> CreateProjectEnvironmentAsync(Project model)
         {
             string pat = model.accessToken;
             templateUsed = model.selectedTemplateFolder;
@@ -612,6 +612,12 @@ namespace ADOGenerator.Services
             if (Directory.Exists(importSourceCodePath))
             {
                 Directory.GetFiles(importSourceCodePath).ToList().ForEach(i => listImportSourceCodeJsonPaths.Add(i));
+                // Do not delete the default repository if there is no source code to import
+                if (listImportSourceCodeJsonPaths.Count == 0)
+                {
+                    model.id.AddMessage("No source code to import");
+                    isDefaultRepoToDelete = false;
+                }
                 if (listImportSourceCodeJsonPaths.Contains(importSourceCodePath + "\\GitRepository.json"))
                 {
                     listImportSourceCodeJsonPaths.Remove(importSourceCodePath + "\\GitRepository.json");
@@ -620,15 +626,14 @@ namespace ADOGenerator.Services
             foreach (string importSourceCode in listImportSourceCodeJsonPaths)
             {
                 model.id.AddMessage("Importing source code");
-                ImportSourceCode(model, importSourceCode, _repoVersion, model.id, _getSourceCodeVersion);
+                await ImportSourceCodeAsync(model, importSourceCode, _repoVersion, model.id, _getSourceCodeVersion);
             }
-            if (isDefaultRepoTodetele)
+            if (isDefaultRepoToDelete)
             {
                 Repository objRepository = new Repository(_repoVersion);
                 string repositoryToDelete = objRepository.GetRepositoryToDelete(model.ProjectName);
                 bool isDeleted = objRepository.DeleteRepository(repositoryToDelete);
             }
-            isDefaultRepoTodetele = true;
             #endregion
 
             //Create Pull request
@@ -918,12 +923,24 @@ namespace ADOGenerator.Services
                 if (buildDefsList != null && buildDefsList.Count > 0)
                 {
                     int buildDefId = 0;
+                    int releaseNotesBuildDefId = 0;
                     foreach (JObject buildDef in buildDefsList)
                     {
                         var yamalfilename = buildDef["process"]["yamlFilename"];
                         if (yamalfilename != null && !string.IsNullOrEmpty(yamalfilename.ToString()))
                         {
-                            buildDefId = Convert.ToInt32(buildDef["id"]);
+                            switch (yamalfilename.ToString().ToLower())
+                            {
+                                case "devops/release-notes.yml":
+                                    releaseNotesBuildDefId = Convert.ToInt32(buildDef["id"]);
+                                    break;
+                                case "devops/pr-quality-checks.yml":
+                                    buildDefId = Convert.ToInt32(buildDef["id"]);
+                                    break;
+                                default:
+                                    // Other YAML files can be ignored for branch policy creation
+                                    continue;
+                            }
                         }
                     }
                     BranchPolicyTypes.PolicyTypes policyTypes = objBuild.GetPolicyTypes();
@@ -931,6 +948,14 @@ namespace ADOGenerator.Services
                     {
                         if (branchPolicyPaths.Count > 0)
                         {
+                            var repositories = objBuild.GetRepoList()?.value;
+                            var defaultRepository = repositories?.FirstOrDefault();
+                            if (defaultRepository == null)
+                            {
+                                model.id.ErrorId().AddMessage("Default repository not found for branch policy creation.");
+                                return false;
+                            }
+
                             foreach (string branchPolicyJsonPath in branchPolicyPaths)
                             {
                                 string policyJson = File.ReadAllText(branchPolicyJsonPath);
@@ -947,6 +972,9 @@ namespace ADOGenerator.Services
                                             string placeHolder = string.Format("${0}$", repository.ToLower());
                                             policyJson = policyJson.Replace(placeHolder, model.Environment.repositoryIdList[repository]);
                                         }
+                                        // Replace the repositoryId and buildDefId in the policy JSON
+                                        policyJson = policyJson.Replace("$repositoryId$", defaultRepository.id);
+                                        policyJson = policyJson.Replace("$releaseNotesBuildDefId$", releaseNotesBuildDefId.ToString());
                                         policyJson = policyJson.Replace("$buildDefId$", buildDefId.ToString());
                                         bool isBuildPolicyCreated = objBuild.CreateBranchPolicy(policyJson, model.ProjectName);
                                     }
@@ -1209,20 +1237,29 @@ namespace ADOGenerator.Services
             {
                 if (teamMap.TeamName.ToLower() != jTeam["name"].ToString().ToLower()) continue;
 
-                GetTeamResponse.Team teamResponse = objTeam.CreateNewTeam(jTeam.ToString(), model.ProjectName);
-                if (string.IsNullOrEmpty(teamResponse.id)) continue;
-
-                string areaName = objTeam.CreateArea(model.ProjectName, teamResponse.name);
-                string updateAreaJSON = GetJsonFilePath(model.IsPrivatePath, model.PrivateTemplatePath, model.SelectedTemplate, teamAreaJSON);
-
-                if (File.Exists(updateAreaJSON))
+                string teamName = teamMap.TeamName;
+                if (teamMap.IsDefault)
                 {
-                    updateAreaJSON = model.ReadJsonFile(updateAreaJSON);
-                    updateAreaJSON = updateAreaJSON.Replace("$ProjectName$", model.ProjectName).Replace("$AreaName$", areaName);
-                    objTeam.SetAreaForTeams(model.ProjectName, teamResponse.name, updateAreaJSON);
+                    var teamResponse = objTeam.GetTeamByName(model.ProjectName, $"{model.ProjectName} Team");
+                    teamName = teamResponse.name;
                 }
+                else
+                {
+                    GetTeamResponse.Team teamResponse = objTeam.CreateNewTeam(jTeam.ToString(), model.ProjectName);
+                    if (string.IsNullOrEmpty(teamResponse.id)) continue;
 
-                objTeam.SetBackLogIterationForTeam(backlogIteration, model.ProjectName, teamResponse.name);
+                    string areaName = objTeam.CreateArea(model.ProjectName, teamResponse.name);
+                    string updateAreaJSON = GetJsonFilePath(model.IsPrivatePath, model.PrivateTemplatePath, model.SelectedTemplate, teamAreaJSON);
+
+                    if (File.Exists(updateAreaJSON))
+                    {
+                        updateAreaJSON = model.ReadJsonFile(updateAreaJSON);
+                        updateAreaJSON = updateAreaJSON.Replace("$ProjectName$", model.ProjectName).Replace("$AreaName$", areaName);
+                        objTeam.SetAreaForTeams(model.ProjectName, teamResponse.name, updateAreaJSON);
+                    }
+
+                    objTeam.SetBackLogIterationForTeam(backlogIteration, model.ProjectName, teamResponse.name);
+                }
 
                 foreach (var iteration in iterations.value)
                 {
@@ -1232,7 +1269,7 @@ namespace ADOGenerator.Services
                     {
                         if (teamMap.Iterations.Contains(child.name))
                         {
-                            objTeam.SetIterationsForTeam(child.identifier, teamResponse.name, model.ProjectName);
+                            objTeam.SetIterationsForTeam(child.identifier, teamName, model.ProjectName);
                         }
                     }
                 }
@@ -1579,7 +1616,7 @@ namespace ADOGenerator.Services
         /// <param name="currentIterations"></param>
         void CreateIterationNode(Project model, RestAPI.WorkItemAndTracking.ClassificationNodes objClassification, GetNodesResponse.Child child, GetNodesResponse.Nodes currentIterations)
         {
-            string[] defaultSprints = new string[] { "Sprint 1", "Sprint 2", "Sprint 3", "Sprint 4", "Sprint 5", "Sprint 6", };
+            string[] defaultSprints = new string[] { "Iteration 1", "Iteration 2", "Iteration 3" };
             if (defaultSprints.Contains(child.name))
             {
                 var nd = (currentIterations.hasChildren) ? currentIterations.children.FirstOrDefault(i => i.name == child.name) : null;
@@ -1693,7 +1730,7 @@ namespace ADOGenerator.Services
         /// <param name="_defaultConfiguration"></param>
         /// <param name="importSourceConfiguration"></param>
         /// <param name="id"></param>
-        void ImportSourceCode(Project model, string sourceCodeJSON, ADOConfiguration _repo, string id, ADOConfiguration _retSourceCodeVersion)
+        private async Task ImportSourceCodeAsync(Project model, string sourceCodeJSON, ADOConfiguration _repo, string id, ADOConfiguration _retSourceCodeVersion)
         {
 
             try
@@ -1705,55 +1742,77 @@ namespace ADOGenerator.Services
                 }
                 if (File.Exists(sourceCodeJSON))
                 {
+                    // Read the source code JSON file and deserialize it
+                    string jsonSourceCode = model.ReadJsonFile(sourceCodeJSON);
+                    ImportSourceCodeRequest deserializedRequest = JsonConvert.DeserializeObject<ImportSourceCodeRequest>(jsonSourceCode);
                     Repository objRepository = new Repository(_repo);
-                    string repositoryName = Path.GetFileName(sourceCodeJSON).Replace(".json", "");
-                    if (model.ProjectName.ToLower() == repositoryName.ToLower())
+
+                    if (deserializedRequest?.Parameters?.LocalSource is not null)
                     {
-                        repositoryDetail = objRepository.GetDefaultRepository(model.ProjectName);
-                        if (repositoryDetail.All(string.IsNullOrEmpty))
+                        // Import from local source code
+                        isDefaultRepoToDelete = false; // If importing from local source, we do not delete the default repo
+
+                        RepositoryService repositoryService = new RepositoryService(model.accountName, model.ProjectName, model.accessToken);
+
+                        bool importResult = await repositoryService.ImportLocalRepositoryAsync(deserializedRequest.Parameters.LocalSource, model.ProjectName);
+                        if (importResult)
                         {
-                            repositoryDetail = objRepository.CreateRepository(model.ProjectName, model.Environment.ProjectId);
+                            model.id.AddMessage($"Source code imported from local repository to {model.ProjectName} repository");
                         }
                         else
                         {
-                            isDefaultRepoTodetele = false;
+                            id.ErrorId().AddMessage("Error while importing source code from local repository.");
                         }
                     }
-                    else
+                    else if (deserializedRequest?.Parameters?.RemoteSource is not null)
                     {
-                        repositoryDetail = objRepository.CreateRepository(repositoryName, model.Environment.ProjectId);
-                    }
-                    if (repositoryDetail.Length > 0)
-                    {
-                        model.Environment.repositoryIdList[repositoryDetail[1]] = repositoryDetail[0];
-                    }
+                        // Import from GitHub source code
+                        string repositoryName = Path.GetFileName(sourceCodeJSON).Replace(".json", "");
+                        if (model.ProjectName.ToLower() == repositoryName.ToLower())
+                        {
+                            repositoryDetail = objRepository.GetDefaultRepository(model.ProjectName);
+                            if (repositoryDetail.All(string.IsNullOrEmpty))
+                            {
+                                repositoryDetail = objRepository.CreateRepository(model.ProjectName, model.Environment.ProjectId);
+                            }
+                            else
+                            {
+                                isDefaultRepoToDelete = false;
+                            }
+                        }
+                        else
+                        {
+                            repositoryDetail = objRepository.CreateRepository(repositoryName, model.Environment.ProjectId);
+                        }
+                        if (repositoryDetail.Length > 0)
+                        {
+                            model.Environment.repositoryIdList[repositoryDetail[1]] = repositoryDetail[0];
+                        }
 
-                    string jsonSourceCode = model.ReadJsonFile(sourceCodeJSON);
+                        //update endpoint ids
+                        foreach (string endpoint in model.Environment.serviceEndpoints.Keys)
+                        {
+                            string placeHolder = string.Format("${0}$", endpoint);
+                            jsonSourceCode = jsonSourceCode.Replace(placeHolder, model.Environment.serviceEndpoints[endpoint]);
+                        }
 
-                    //update endpoint ids
-                    foreach (string endpoint in model.Environment.serviceEndpoints.Keys)
-                    {
-                        string placeHolder = string.Format("${0}$", endpoint);
-                        jsonSourceCode = jsonSourceCode.Replace(placeHolder, model.Environment.serviceEndpoints[endpoint]);
-                    }
+                        Repository objRepositorySourceCode = new Repository(_retSourceCodeVersion);
+                        bool copySourceCode = objRepositorySourceCode.GetSourceCodeFromGitHub(jsonSourceCode, model.ProjectName, repositoryDetail[0]);
+                        if (copySourceCode)
+                        {
+                            model.id.AddMessage($"Source code imported to {repositoryName} repository");
+                        }
+                        if (!model.Environment.reposImported.ContainsKey(repositoryDetail[0]))
+                        {
+                            model.Environment.reposImported.Add(repositoryDetail[0], copySourceCode);
+                        }
 
-                    Repository objRepositorySourceCode = new Repository(_retSourceCodeVersion);
-                    bool copySourceCode = objRepositorySourceCode.GetSourceCodeFromGitHub(jsonSourceCode, model.ProjectName, repositoryDetail[0]);
-                    if (copySourceCode)
-                    {
-                        model.id.AddMessage($"Source code imported to {repositoryName} repository");
-                    }
-                    if (!model.Environment.reposImported.ContainsKey(repositoryDetail[0]))
-                    {
-                        model.Environment.reposImported.Add(repositoryDetail[0], copySourceCode);
-                    }
-
-                    if (!(string.IsNullOrEmpty(objRepositorySourceCode.LastFailureMessage)))
-                    {
-                        id.ErrorId().AddMessage("Error while importing source code: " + objRepositorySourceCode.LastFailureMessage + Environment.NewLine);
+                        if (!(string.IsNullOrEmpty(objRepositorySourceCode.LastFailureMessage)))
+                        {
+                            id.ErrorId().AddMessage("Error while importing source code: " + objRepositorySourceCode.LastFailureMessage + Environment.NewLine);
+                        }
                     }
                 }
-
             }
             catch (Exception ex)
             {

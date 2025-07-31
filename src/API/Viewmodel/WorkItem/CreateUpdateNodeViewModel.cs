@@ -11,8 +11,8 @@
 
         public class Attributes
         {
-            public DateTime startDate { get; set; }
-            public DateTime finishDate { get; set; }
+            public string startDate { get; set; }
+            public string finishDate { get; set; }
         }
     }
 }

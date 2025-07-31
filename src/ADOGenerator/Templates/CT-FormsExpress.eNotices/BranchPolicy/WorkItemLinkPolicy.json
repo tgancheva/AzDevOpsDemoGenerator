@@ -1,0 +1,22 @@
+{
+    "isBlocking": true,
+    "isDeleted": false,
+    "isEnabled": true,
+    "settings": {
+        "scope": [
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/dev",
+                "repositoryId": "$repositoryId$"
+            },
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/main",
+                "repositoryId": "$repositoryId$"
+            }
+        ]
+    },
+    "type": {
+        "id": "40e92b44-2fe1-4dd6-b3d8-74a9c21d0c6e"
+    }
+}

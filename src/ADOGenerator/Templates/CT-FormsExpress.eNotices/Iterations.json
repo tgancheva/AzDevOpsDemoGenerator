@@ -1,0 +1,137 @@
+{
+  "children": [
+    {
+      "name": "Iteration 1",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 2",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 3",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 4",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 5",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 6",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 7",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 8",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 9",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 10",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 11",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 12",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 13",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 14",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 15",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 16",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 17",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 18",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 19",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 20",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 21",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 22",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 23",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 24",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 25",
+      "structureType": "iteration",
+      "hasChildren": false
+    },
+    {
+      "name": "Iteration 26",
+      "structureType": "iteration",
+      "hasChildren": false
+    }
+  ],
+  "name": "$ProjectName$",
+  "structureType": "iteration",
+  "hasChildren": true
+}

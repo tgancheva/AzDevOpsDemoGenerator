@@ -1,0 +1,23 @@
+{
+    "isBlocking": true,
+    "isDeleted": false,
+    "isEnabled": true,
+    "isEnterpriseManaged": false,
+    "settings": {
+        "buildDefinitionId": "$releaseNotesBuildDefId$",
+        "displayName": null,
+        "manualQueueOnly": true,
+        "queueOnSourceUpdateOnly": true,
+        "scope": [
+            {
+                "matchKind": "exact",
+                "refName": "refs/heads/main",
+                "repositoryId": "$repositoryId$"
+            }
+        ],
+        "validDuration": 0
+    },
+    "type": {
+        "id": "0609b952-1397-4640-95ec-e00a01b2c241"
+    }
+}
