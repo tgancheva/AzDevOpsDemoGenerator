@@ -54,11 +54,11 @@
       "defaultBranch": "refs/heads/dev",
       "isFork": "False",
       "creationDate": "12/19/2023 07:37:40",
-      "safeRepository": "$FormsExpress.eNotices$",
+      "safeRepository": "$OneBitTemplate$",
       "reportBuildStatus": "true",
       "fetchDepth": "1"
     },
-    "id": "$FormsExpress.eNotices$",
+    "id": "$OneBitTemplate$",
     "type": "TfsGit",
     "name": "$ProjectName$",
     "url": "https://$Organization$@dev.azure.com/$Organization$/$ProjectName$/_git/$ProjectName$",

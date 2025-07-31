@@ -31,11 +31,11 @@
       "fullName": "$ProjectName$",
       "defaultBranch": "refs/heads/dev",
       "isFork": "False",
-      "safeRepository": "$FormsExpress.eNotices$",
+      "safeRepository": "$OneBitTemplate$",
       "reportBuildStatus": "true",
       "fetchDepth": "1"
     },
-    "id": "$FormsExpress.eNotices$",
+    "id": "$OneBitTemplate$",
     "type": "TfsGit",
     "name": "$ProjectName$",
     "url": "https://$Organization$@dev.azure.com/$Organization$/$ProjectName$/_git/$ProjectName$",

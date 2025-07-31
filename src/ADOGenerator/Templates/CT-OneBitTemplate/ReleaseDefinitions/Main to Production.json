@@ -8,32 +8,6 @@
   "modifiedOn": "",
   "isDeleted": false,
   "isDisabled": false,
-  "lastRelease": {
-    "id": 572,
-    "name": "Release-13",
-    "artifacts": [],
-    "_links": {},
-    "description": "Triggered by FormsExpress.eNotices - Main 20250721.1.",
-    "releaseDefinition": {
-      "id": 2,
-      "projectReference": null,
-      "_links": {}
-    },
-    "createdOn": "2025-07-21T13:24:57.8Z",
-    "createdBy": {
-      "displayName": "Vladislav Daskalov",
-      "url": "https://spsprodeau1.vssps.visualstudio.com/Ace84d48b-fb86-47a3-88f2-81db546ae70f/_apis/Identities/cd88b352-a390-6121-8ea9-0cdc37e26e73",
-      "_links": {
-        "avatar": {
-          "href": "https://dev.azure.com/formsexpress/_apis/GraphProfile/MemberAvatars/aad.Y2Q4OGIzNTItYTM5MC03MTIxLThlYTktMGNkYzM3ZTI2ZTcz"
-        }
-      },
-      "id": "cd88b352-a390-6121-8ea9-0cdc37e26e73",
-      "uniqueName": "v.daskalov@onebitsoftware.net",
-      "imageUrl": "https://dev.azure.com/formsexpress/_apis/GraphProfile/MemberAvatars/aad.Y2Q4OGIzNTItYTM5MC03MTIxLThlYTktMGNkYzM3ZTI2ZTcz",
-      "descriptor": "aad.Y2Q4OGIzNTItYTM5MC03MTIxLThlYTktMGNkYzM3ZTI2ZTcz"
-    }
-  },
   "variables": {},
   "variableGroups": [
     "$Production Web API$"
@@ -323,7 +297,7 @@
                 "PublishProfilePath": "$(System.DefaultWorkingDirectory)/**/*.pubxml",
                 "PublishProfilePassword": "",
                 "WebAppKind": "webApp",
-                "WebAppName": "production-enotices-webapi",
+                "WebAppName": "",
                 "DeployToSlotOrASEFlag": "false",
                 "ResourceGroupName": "",
                 "SlotName": "production",
@@ -331,7 +305,7 @@
                 "DockerRepository": "",
                 "DockerImageTag": "",
                 "VirtualApplication": "",
-                "Package": "$(System.DefaultWorkingDirectory)/**/FormsExpress.ENotices.WebApi.zip",
+                "Package": "",
                 "RuntimeStack": "",
                 "RuntimeStackFunction": "",
                 "StartupCommand": "",
@@ -518,7 +492,7 @@
                 "PublishProfilePath": "$(System.DefaultWorkingDirectory)/**/*.pubxml",
                 "PublishProfilePassword": "",
                 "WebAppKind": "webApp",
-                "WebAppName": "production-enotices-dashboard",
+                "WebAppName": "",
                 "DeployToSlotOrASEFlag": "false",
                 "ResourceGroupName": "",
                 "SlotName": "production",
@@ -526,7 +500,7 @@
                 "DockerRepository": "",
                 "DockerImageTag": "",
                 "VirtualApplication": "",
-                "Package": "$(System.DefaultWorkingDirectory)/**/FormsExpress.ENotices.Dashboard.zip",
+                "Package": "",
                 "RuntimeStack": "",
                 "RuntimeStackFunction": "",
                 "StartupCommand": "",
