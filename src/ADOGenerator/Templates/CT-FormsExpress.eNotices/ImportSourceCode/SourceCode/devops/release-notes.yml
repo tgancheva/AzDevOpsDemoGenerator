@@ -1,0 +1,112 @@
+trigger: none
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  # Mapping input variables to friendlier names
+  EmailRecipients: $(ReleaseNotesEmailRecipients)
+  SmtpUser: $(InputSmtpUser)
+  SmtpPass: $(InputSmtpPass)
+  SmtpPort: $(InputSmtpPort)
+  SmtpHost: $(InputSmtpHost)
+  FromEmail: $(InputSender)
+
+steps:
+
+- task: XplatGenerateReleaseNotes@4
+  displayName: Generate release notes
+  inputs:
+    outputfile: '$(Build.SourcesDirectory)/releasenotes.md'
+    templateLocation: 'File'
+    templatefile: "devops/release-notes-template.md"    
+    checkStage: false # generate release notes since last successful release
+    stopOnRedeploy: true
+    dumpPayloadToConsole: false
+    dumpPayloadToFile: false
+    replaceFile: true
+    getParentsAndChildren: true # get parents and children of linked work items which will be accessible in the template
+    getAllParents: false # get all parents of linked work items which will be accessible in the template
+    getIndirectPullRequests: false
+    stopOnError: false
+    checkForManuallyLinkedWI: true
+    emptySetText: "No items found" # text to be returned if no work items found
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish release notes as artifact
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/releasenotes.md'
+    ArtifactName: 'ReleaseNotes'
+    publishLocation: 'Container'
+
+- task: WikiUpdaterTask@2
+  displayName: Publish release notes in Wiki
+  inputs:
+    repo: '$(WikiRepo)'
+    branch: 'wikiMaster'
+    filename: 'Release-Notes.md'
+    replaceFile: false
+    dataIsFile: true
+    sourceFile: '$(Build.SourcesDirectory)/releasenotes.md'
+    message: 'Automatic commit from pipeline'
+    gitname: 'pipeline'
+    gitemail: '$(FromEmail)'
+    useAgentToken: true
+    localpath: '$(Build.SourcesDirectory)\wikirepo'
+
+- task: PowerShell@2
+  displayName: Send release-notes email
+  inputs:
+    targetType: inline
+    script: |
+      Write-Host "[DEBUG] Starting email sending script..."
+
+      $templatePath = "$(Build.SourcesDirectory)\devops\email-templates\ReleaseEmailTemplate.html"
+      Write-Host "[DEBUG] Template path: $templatePath"
+
+      if (!(Test-Path $templatePath)) {
+        Write-Error "[ERROR] Email template not found at $templatePath"
+        exit 1
+      }
+
+      Write-Host "[DEBUG] Loading template..."
+      $htmlBody = Get-Content $templatePath -Raw
+
+      $dateOnly = Get-Date -Format 'MMMM dd, yyyy'
+
+      Write-Host "[DEBUG] Replacing placeholders..."
+      $htmlBody = $htmlBody -replace '{{ProjectName}}', '$(Build.Repository.Name)'
+      $htmlBody = $htmlBody -replace '{{PRBranch}}', '$(Build.SourceBranchName)'
+      $htmlBody = $htmlBody -replace '{{DateOnly}}', $dateOnly
+      $htmlBody = $htmlBody -replace '{{WikiLink}}', '$(WikiLink)'
+
+      $toList = "$(EmailRecipients)" -split '\s*,\s*'
+
+      Write-Host "[DEBUG] Creating mail message..."
+      $mail = New-Object System.Net.Mail.MailMessage
+      $mail.From = New-Object System.Net.Mail.MailAddress("$(FromEmail)")
+      foreach ($to in $toList) {
+        $mail.To.Add($to)
+      }
+      $mail.Subject = "[$(Build.Repository.Name)] Production Release Notes - $dateOnly"
+      $mail.IsBodyHtml = $true
+      $mail.Body = $htmlBody
+
+      $smtp = New-Object System.Net.Mail.SmtpClient("$(InputSmtpHost)", [int]$(InputSmtpPort))
+      $smtp.Credentials = New-Object System.Net.NetworkCredential("$(InputSmtpUser)", "$(InputSmtpPass)")
+      $smtp.EnableSsl = $true
+
+      try {
+        Write-Host "[DEBUG] Sending email..."
+        $smtp.Send($mail)
+        Write-Host "[SUCCESS] Email sent to: $($toList -join ', ')"
+      }
+      catch {
+        Write-Error "[ERROR] Failed to send email: $_"
+        throw
+      }
+      finally {
+        if ($mail) { $mail.Dispose() }
+        if ($smtp) { $smtp.Dispose() }
+      }
+

@@ -1,0 +1,125 @@
+# This pipeline must succeed before a PR can be merged.
+# It starts manually when queued from within a PR.
+
+trigger: none
+
+variables:
+  ClientSharedUpdated: false
+
+jobs:
+- job: 'PR_Quality_Check'
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - checkout: self
+      fetchDepth: 0
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 8.x'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - task: PowerShell@2
+      displayName: Display the environment variables
+      inputs:
+        targetType: 'inline'
+        script: 'Get-ChildItem Env: | Sort-Object Name'
+
+    - task: NuGetAuthenticate@1
+      displayName: NuGet Authenticate
+
+    - task: PowerShell@2
+      displayName: NuGet restore
+      inputs:
+        targetType: 'inline'
+        script: 'dotnet restore ./src/FormsExpress.ENotices.sln --configfile ./src/nuget.config --verbosity normal'
+
+    - task: Bash@3
+      displayName: Install Azurite
+      inputs:
+        targetType: 'inline'
+        script: |
+          npm install -g azurite
+          mkdir azurite
+          azurite --silent --location azurite --debug azurite\debug.log &
+
+    - task: DotNetCoreCLI@2
+      displayName: Run WebApi build
+      inputs:
+        command: 'build'
+        projects: '$(System.DefaultWorkingDirectory)/src/Web/FormsExpress.ENotices.WebApi/FormsExpress.ENotices.WebApi.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Web API tests
+      inputs:
+        command: 'test'
+        projects: '**/Tests/**/*.csproj'
+        testRunTitle: 'Web API Tests'
+
+    - task: NodeTool@0 
+      displayName: Install Node.js
+      inputs:
+        versionSpec: '20.x'
+     
+    - task: PowerShell@2
+      displayName: Check if Client.Shared has been updated
+      env:
+        NODE_OPTIONS: --max_old_space_size=16384
+      inputs:
+        targetType: 'inline'
+        script: |
+            $files=$(git diff --name-only origin/dev)
+            $temp=$files -split ' '
+            $count=$temp.Length
+            echo "Total changed $($temp.Length) files"
+            for ($i=0; $i -lt $temp.Length; $i++)
+            {
+                  $name=$temp[$i]
+                Write-Host "Changed file:" $name
+                if ($name -like "src/Web/formsexpress.enotices.client.shared/*")
+                {
+                      Write-Host "##vso[task.setvariable variable=ClientSharedUpdated]true"
+                    Write-Host "ClientSharedUpdated set to true"
+                    Break
+                }
+            }
+            
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared/.npmrc'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - script: npm install
+      displayName: 'Client.Shared: npm install'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - script: npm run rollup
+      displayName: 'Client.Shared: run rollup'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    # - script: npm publish
+    #   displayName: 'Client.Shared: npm publish'
+    #   workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+    #   condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+    
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard/.npmrc'
+
+    - script: npm install
+      displayName: 'Dashboard UI: npm install'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - script: npm run lint
+      displayName: 'Dashboard UI: run lint'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - script: npm run build-staging
+      displayName: 'Dashboard UI: build staging'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - script: find .
+      displayName: List contents of the folder

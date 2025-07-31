@@ -37,8 +37,11 @@ namespace ADOGenerator.Models
 
     public class ImportSourceCodeLocalSource
     {
-        [JsonPropertyName("path")]
-        public string Path { get; set; }
+        [JsonPropertyName("sourcePath")]
+        public string SourcePath { get; set; }
+
+        [JsonPropertyName("targetPath")]
+        public string TargetPath { get; set; }
 
         [JsonPropertyName("branches")]
         public List<string> Branches { get; set; }

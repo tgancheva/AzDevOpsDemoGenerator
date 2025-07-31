@@ -1,7 +1,8 @@
 {
   "parameters": {
     "localSource": {
-		"path": "C:\\Projects\\OneBit\\AzDevOpsDemoGenerator.Repository",
+		"sourcePath": "C:\\Projects\\OneBit\\AzDevOpsDemoGenerator\\src\\ADOGenerator\\Templates\\CT-FormsExpress.eNotices\\ImportSourceCode\\SourceCode",
+		"targetPath": "C:\\Projects\\OneBit\\Project-Template-5",
         "branches": ["dev", "main"]
     }
   }

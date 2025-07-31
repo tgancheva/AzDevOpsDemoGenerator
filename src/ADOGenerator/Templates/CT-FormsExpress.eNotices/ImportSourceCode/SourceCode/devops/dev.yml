@@ -1,0 +1,201 @@
+# Automatic pipeline running when we merge into the dev branch.
+
+trigger:
+  - dev
+
+variables:
+  ClientSharedUpdated: false
+
+jobs:
+- job: 'Dev'
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - checkout: self
+      fetchDepth: 0
+      persistCredentials: true
+  
+    - task: PowerShell@2
+      displayName: Check if Client.Shared has been updated
+      env:
+        NODE_OPTIONS: --max_old_space_size=16384
+      inputs:
+        targetType: 'inline'
+        script: |
+            $files=$(git diff HEAD HEAD~ --name-only)
+            $temp=$files -split ' '
+            $count=$temp.Length
+            echo "Total changed $($temp.Length) files"
+            for ($i=0; $i -lt $temp.Length; $i++)
+            {
+                  $name=$temp[$i]
+                Write-Host "Changed file:" $name
+                if ($name -like "src/Web/formsexpress.enotices.client.shared/*")
+                {
+                      Write-Host "##vso[task.setvariable variable=ClientSharedUpdated]true"
+                    Write-Host "ClientSharedUpdated set to true"
+                    Break
+                }
+            }
+
+    - task: NodeTool@0 
+      displayName: Install Node.js
+      inputs:
+        versionSpec: '20.x'
+     
+    - task: PowerShell@2
+      displayName: 'Client.Shared: version patch'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+      inputs:
+        targetType: 'inline'
+        script: |
+          $BranchName = "$(Build.SourceBranch)" -replace "refs/heads/"
+          echo "Checking out: $BranchName..."
+          git checkout $BranchName
+          echo "Configuring git commit identity for $(Build.RequestedFor) $(Build.RequestedForEmail)..."
+          git config user.name "$(Build.RequestedFor)"
+          git config user.email "$(Build.RequestedForEmail)"
+          echo "Increasing client.shared patch version..."
+          $output=$(npm version patch --force)
+          $new_version = [regex]::Match($output, '(?<=v)[0-9]+\.[0-9]+\.[0-9]+').Value
+          echo "client.shared patch version updated to: $new_version"
+          echo "Git status..."
+          git status
+          echo "Adding files and commiting  changes..."
+          git add -A
+          git commit -m "Set formsexpress.enotices.client.shared patch version to $new_version [skip ci]"
+          echo "Push changes..."
+          git push
+        workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+        
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 8.x'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - task: DotNetCoreCLI@2
+      displayName: Install dotnet ef
+      inputs:
+        command: 'custom'
+        custom: 'tool'
+        arguments: 'install --global dotnet-ef --version 8.0.1'
+
+    - task: PowerShell@2
+      displayName: Display the environment variables
+      inputs:
+        targetType: 'inline'
+        script: 'Get-ChildItem Env: | Sort-Object Name'
+
+    - task: NuGetAuthenticate@1
+      displayName: NuGet authenticate
+
+    - task: PowerShell@2
+      displayName: NuGet restore
+      inputs:
+        targetType: 'inline'
+        script: 'dotnet restore ./src/FormsExpress.ENotices.sln --configfile ./src/nuget.config --verbosity normal'
+
+    - task: Bash@3
+      displayName: Install Azurite
+      inputs:
+        targetType: 'inline'
+        script: |
+          npm install -g azurite
+          mkdir azurite
+          azurite --silent --location azurite --debug azurite\debug.log &
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Web API build
+      inputs:
+        command: 'build'
+        projects: '$(System.DefaultWorkingDirectory)/src/Web/FormsExpress.ENotices.WebApi/FormsExpress.ENotices.WebApi.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Web API tests
+      inputs:
+        command: 'test'
+        projects: '**/Tests/**/*.csproj'
+        testRunTitle: 'Web API Tests'
+
+    - task: FileTransform@1
+      displayName: Transform Web API appsettings.json with pipeline variables
+      inputs:
+        folderPath: '$(System.DefaultWorkingDirectory)/src/Web'
+        fileType: 'json'
+        targetFiles: 'FormsExpress.ENotices.WebApi/**/appsettings.json'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish Web API for staging
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '$(System.DefaultWorkingDirectory)/src/Web/FormsExpress.ENotices.WebApi/FormsExpress.ENotices.WebApi.csproj'
+        arguments: '--output $(Build.ArtifactStagingDirectory)'
+
+    - task: DotNetCoreCLI@2
+      displayName: Create application migrations SQL script
+      inputs:
+        command: 'custom'
+        custom: 'ef'
+        arguments: 'migrations script --output $(Build.SourcesDirectory)/SQL/application_migrations.sql --idempotent --project $(Build.SourcesDirectory)/src/Web/FormsExpress.ENotices.WebApi/FormsExpress.ENotices.WebApi.csproj --context ApplicationDbContext'
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish migrations SQL scripts
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/SQL'
+        ArtifactName: 'SQLScripts'
+      
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared/.npmrc'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - script: npm ci
+      displayName: 'Client.Shared: npm install'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - script: npm run rollup
+      displayName: 'Client.Shared: run rollup'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - script: npm publish
+      displayName: 'Client.Shared: npm publish'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
+      condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
+
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard/.npmrc'
+
+    - script: npm install
+      displayName: 'Dashboard UI: npm install'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - script: npm run lint
+      displayName: 'Dashboard UI: run lint'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - script: npm run build-staging
+      displayName: 'Dashboard UI: build staging'
+      workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.dashboard/dist'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/FormsExpress.ENotices.Dashboard.zip'
+        replaceExistingArchive: true
+        verbose: true
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'ENoticesApps'
+        publishLocation: 'Container'
+
+    - script: find .
+      displayName: List contents of the folder
