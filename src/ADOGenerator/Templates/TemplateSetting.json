@@ -1111,9 +1111,9 @@
       "Groups": "Custom Templates",
       "Template": [
         {
-          "Name": "FormsExpress.eNotices",
-          "TemplateFolder": "CT-FormsExpress.eNotices",
-          "Description": "This is a custom template for the project 'FormsExpress.eNotices'."
+          "Name": "OneBit - Template",
+          "TemplateFolder": "CT-OneBitTemplate",
+          "Description": "This is a custom template for creating OneBit projects."
         }
       ]
     }
