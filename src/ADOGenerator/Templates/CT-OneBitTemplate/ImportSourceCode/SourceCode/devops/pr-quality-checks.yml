@@ -99,11 +99,6 @@ jobs:
       displayName: 'Client.Shared: run rollup'
       workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
       condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
-
-    # - script: npm publish
-    #   displayName: 'Client.Shared: npm publish'
-    #   workingDirectory: '$(Build.SourcesDirectory)/src/Web/formsexpress.enotices.client.shared'
-    #   condition: and(succeeded(), eq(variables['ClientSharedUpdated'], 'true'))
     
     - task: npmAuthenticate@0
       inputs:
