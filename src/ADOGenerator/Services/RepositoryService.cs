@@ -66,7 +66,7 @@ namespace ADOGenerator.Services
                 // Copy files from source to target directory
                 CopyDirectory(localSource.SourcePath, localSource.TargetPath);
 
-                Console.WriteLine("Files copied successfully to Local repository folder");
+                Console.WriteLine("Files copied successfully to local repository folder");
                 return true;
             }
             catch (Exception ex)
@@ -142,18 +142,21 @@ namespace ADOGenerator.Services
                     await RunGitCommandAsync(localSource.TargetPath, "commit -m \"Initial import from local repository\"");
                 }
 
-                // 5. Create main branch from dev branch
-                await RunGitCommandAsync(localSource.TargetPath, $"checkout -b main");
-
-                // 6. Merge dev branch into main
-                await RunGitCommandAsync(localSource.TargetPath, $"merge dev");
-
-                // 7. Add remote origin
+                // 5. Add remote origin
                 var remoteUrlWithToken = remoteUrl.Replace("https://", $"https://:{_personalAccessToken}@");
                 await RunGitCommandAsync(localSource.TargetPath, $"remote add origin {remoteUrlWithToken}");
 
-                // Push branches to remote
-                localSource.Branches.ForEach(async branch => await RunGitCommandAsync(localSource.TargetPath, "push -u origin " + branch));
+                // 6. Push dev branch to origin
+                await RunGitCommandAsync(localSource.TargetPath, "push -u origin dev");
+
+                // 7. Create main branch from dev branch
+                await RunGitCommandAsync(localSource.TargetPath, $"checkout -b main");
+
+                // 8. Merge dev branch into main
+                await RunGitCommandAsync(localSource.TargetPath, $"merge dev");
+
+                // 9. Push main branch to remote
+                await RunGitCommandAsync(localSource.TargetPath, "push -u origin main");
 
                 Console.WriteLine("Local repository pushed successfully");
                 return true;
